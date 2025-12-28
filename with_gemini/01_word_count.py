@@ -48,5 +48,18 @@ print("\n=== Word Count Results ===")
 for word, count in results:
     print(f"{word}: {count}")
 
+
+home_work = """
+    @NOTE: 01_과제
+        - data 리스트에서 "Spark"라는 단어가 포함된 문장만 필터링 후 필터링된 문장의 개수
+        - 힌트: rdd.filter(lambda x: ...)
+"""
+print(f"\n\n{home_work}")
+spark_words_rdd = rdd.filter(lambda sent: "Spark" in sent)
+homework_results = spark_words_rdd.collect()
+print(f"\nHomework results: {len(homework_results)}")
+for idx, sent in enumerate(homework_results):
+    print(f"{idx + 1}: {sent}")
+
 # 6. 리소스 해제
 spark.stop()
