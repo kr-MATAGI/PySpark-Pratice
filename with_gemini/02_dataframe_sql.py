@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
 from pyspark.sql.functions import col, desc, length
 
 # 1. SparkSession 생성
@@ -61,5 +62,60 @@ sql_result.show()
 # - Physical Plan: 실제 실행될 물리적 연산 (HashAggregate, Exchange 등). 튜닝 시 가장 중요함.
 print("\n--- Execution Plan ---")
 error_analysis.explain(True)
+
+
+homework_docs = """
+    @NOTE: 02_과제
+        - data에 문장 길이를 계산하는 새로운 컬럼 `msg_length`를 추가
+        - `level` 별로 메시지 길이의 평균을 구하고, 평균의 길이가 긴 순서대로 출력
+        - 이 방식을 DSL과 SQL로 구현해보세요.
+
+        * 힌트: withColumn과 length함수 사용
+"""
+
+# @NOTE: DSL로 구현
+print("\nDSL로 구현하기")
+
+# 1. data에 문장 길이를 계산하는 새로운 컬럼 `msg_length`를 추가
+dsl_df = df.withColumn("msg_length", length(col("message")))
+dsl_df.show()
+
+# 2. `level` 별로 메시지 평균 길이 구하기
+sort_dsl_df = (
+    dsl_df.groupBy("level")
+    .agg(F.avg("msg_length").alias("avg_msg_length"))
+    .orderBy(desc("avg_msg_length"))
+)
+sort_dsl_df.show()
+
+print("\nSQL로 구현하기")
+
+# @NOTE: SQL로 구현
+homework_sql_result_1 = spark.sql(
+    """
+    SELECT 
+        *,
+        LENGTH(message) as msg_length
+    FROM logs
+"""
+)
+
+homework_sql_result_1.show()
+
+# 2. 레벨별 평균 길이
+homework_sql_result_1.createTempView("msg_length_logs")
+
+homework_sql_result_2 = spark.sql(
+    """
+    SELECT 
+        level,
+        AVG(msg_length) as avg_msg_length
+    FROM msg_length_logs
+    GROUP BY level
+    ORDER BY avg_msg_length DESC
+"""
+)
+homework_sql_result_2.show()
+
 
 spark.stop()
